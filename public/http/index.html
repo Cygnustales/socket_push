@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Test Push</title>
+<meta name="description" content="" />
+<meta name="author" content="" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<link rel="shortcut icon" href="assets/img/favicon.ico" type="image/x-icon">
+<link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
+<!--<link rel="manifest" href="manifest.json">-->
+<style>
+	* { margin: 0; padding: 0; box-sizing: border-box; }
+	body { font: 13px Helvetica, Arial; }
+	form { background: #ccc; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+	form input { border: 0; padding: 10px; width: 84%; margin-right: .5%; }
+	form button { width:15%; background: #ccc; border: none; padding: 10px; }
+	#messages { list-style-type: none; margin: 0; padding: 0; }
+	#messages li { padding: 5px 10px;}
+	#messages li:nth-child(odd) { background: #eee;}
+	.container{
+		width: 100%;
+	}
+	.ins{
+		width: 100%;
+		position: fixed;
+		bottom: 0;
+		z-index: 999;
+	}
+</style>
+<!--<script src="assets/js/ip.js"></script>-->
+</head>
+<body>
+	<div id="list"></div>
+	<div class="container">
+	<ul id="messages"></ul>
+
+</div>
+<div class="ins">
+	<form action="">
+		<input id="m" autocomplete="off" />
+		<button>Send</button>
+	</form>
+</div>
+	<script src="assets/js/socket.io-1.2.0.js"></script>
+	<script src="assets/js/notify.js"></script>
+	<script src="assets/js/jquery-1.11.1.js"></script>
+	<script>
+		var slk=document.getElementById('list').textContent
+		if(slk==''){
+			var ff=Math.floor(Math.random() * 999) - 1;
+			slk=ff;
+		}
+		document.cookie="username="+slk+"; expires=Thu, 12 Feb 2016 12:00:00 UTC";
+		var xv = document.cookie;
+		var user = {
+				id       : slk,
+				fullID : function() {
+					 return this.id;
+				}
+		};
+	//console.log(xv);
+		var socket = io();
+		$('form').submit(function(){
+			var psn=user.fullID()+' = '+ $('#m').val();
+			var pstn=$('#m').val();
+			socket.emit('message1', psn);
+			socket.emit('message2', user.fullID(), pstn);
+			var pesan = $('#m').val();
+			$('#m').val('');
+			var sent='1';
+			return false;
+		});
+		socket.on('message1', function(msg){
+			$('#messages').append($('<li>').text(msg));
+		});
+		socket.on('message2', function(msgs, ms){
+				if(msgs!==user.fullID()){
+					showit(ms)
+				}
+		});
+			function showit(msg){
+            function onShowNotification () {
+                //console.log('notification is shown!');
+            }
+
+            function onCloseNotification () {
+              //  console.log('notification is closed!');
+            }
+
+            function onClickNotification () {
+              //  console.log('notification was clicked!');
+            }
+
+            function onErrorNotification () {
+              //  console.error('Error showing notification. You may need to request permission.');
+            }
+
+            function onPermissionGranted () {
+              //  console.log('Permission has been granted by the user');
+                doNotification();
+            }
+
+            function onPermissionDenied () {
+              //  console.warn('Permission has been denied by the user');
+            }
+            function doNotification () {
+                var myNotification = new Notify('BuzzBuddies.com', {
+                    body: msg,
+                    tag: 'BuzzBuddies Notification',
+										icon:'assets/img/icon-192x192.png',
+                    notifyShow: onShowNotification,
+                    notifyClose: onCloseNotification,
+                    notifyClick: onClickNotification,
+                    notifyError: onErrorNotification,
+                    timeout: 40
+                });
+                myNotification.show();
+            }
+            if (!Notify.needsPermission) {
+                doNotification();
+            } else if (Notify.isSupported()) {
+                Notify.requestPermission(onPermissionGranted, onPermissionDenied);
+            }
+					}
+    </script>
+</body>
+</html>
